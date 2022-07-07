@@ -68,34 +68,55 @@
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-   const socket=io.connect() 
+   //let socket=io.connect()
    let but = document.getElementById("StartGame") 
    let cols=document.getElementById("cols")
    let rows=document.getElementById("rows")
    let user = document.getElementById("user")
-   
+
+let Players=''
 let PlayersMove =true
+
 
 let element = document.querySelector("#cell")
 
 but.addEventListener("click",function(e) {
-  
+    let socket=io.connect('http://localhost:3000')
+    Players=(Math.random() + 1).toString(36).substring(7);
+    //PlayersMove=true
+    socket.emit('Player',PlayersMove)
     if(e.target.id='SatartGame'){
+       
         if(element.children.length>=1){
             element.children[0].remove()
         }
-        let colsValue=cols.value
-        let rowsValue=rows.value
-        CreateGamePage(element,+colsValue,+rowsValue)
-        console.log(typeof(+rows))
-        socket.emit('StartGame',+colsValue,+rowsValue)
-        
+   // socket.on('start',(roomId)=>{
+    //socket=io.connect(`${roomId}`)
+    //console.log(socket.rooms)
+    let colsValue=cols.value
+    let rowsValue=rows.value
+    CreateGamePage(element,+colsValue,+rowsValue) 
+    socket.emit('StartGame',+colsValue,+rowsValue)
     }
     else{
         console.log('error')
     }
+   
 
-})
+
+//})
+
+/* socket.on('start',(roomId)=>{
+    console.log('roomId',roomId)
+    socket=io.connected(roomId)
+    console.log(socket.rooms)
+    console.log('sssssssssssssssss')
+    let colsValue=cols.value
+    let rowsValue=rows.value
+    socket.emit('StartGame',+colsValue,+rowsValue)
+    CreateGamePage(element,+colsValue,+rowsValue)
+  }) */
+    
 
 function CreateGamePage(parent,cols,rows){
 
@@ -123,6 +144,10 @@ function CreateGamePage(parent,cols,rows){
 user.value=innerHTML='X'
 let playerMoveX=null;
 let playerMoveO=null;
+  socket.on('EndGame',(message)=>{
+    alert(message)
+})  
+
  document.getElementById("game-field").addEventListener("click",function click(e){
      
     console.log(document.getElementById("game-field"))
@@ -177,6 +202,8 @@ let playerMoveO=null;
    
 })
 }
+}) 
+
 
 </script>
 </html>
