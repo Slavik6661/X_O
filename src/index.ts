@@ -78,136 +78,102 @@ io.sockets.on("connection", (socket) => {
         if (gameField[+cordCell_1][+cordCell_2] === "null") {
           gameField[+cordCell_1][+cordCell_2] = GameSymbol;
           console.log(gameField);
-          console.log(CheckWinDiagonal_from_Left_to_Right(gameField,
+          
+           console.log(CheckWinDiagonal_from_Left_to_Right(gameField,
             GameSymbol,
             nextCell,
             WinDiagonal,
             strCell,
             colsValue,
-            rowsValue))
+            rowsValue)) 
 
-          console.log(CheckWinDiagonal_from_Right_to_Left(gameField,
+           console.log(CheckWinDiagonal_from_Right_to_Left(gameField,
               GameSymbol,
               nextCell,
               WinDiagonal,
               strCell,
               colsValue,
-              rowsValue))  
+              rowsValue))   
 
-      /*   console.log(
-            CheckWinDiagonal(
+            console.log(
+            checkWinHorizontal(
               gameField,
               GameSymbol,
-              col,
-              row,
-              nextCell,
-              WinDiagonal,
-              strCell,
+              WinHorizontal,
               colsValue,
               rowsValue,
             ),
-          );           */
-         /*  console.log(
-            checkWin(
+          );  
+
+             console.log(
+            checkWinVertical(
               gameField,
               GameSymbol,
-              col,
-              row,
-              WinHorizontal,
               WinVertical,
               colsValue,
               rowsValue,
             ),
-          ); */  
+          );   
           
         }
       else{console.log("выход за приделы массива");}   
     });
  
 
-  function checkWin(
+  function checkWinHorizontal(
     gameField: string[][],
     GameSymbol: string,
-    col: number,
-    row: number,
     WinHorizontal: number,
-    WinVertical: number,
     colsValue: number,
     rowsValue: number,
   ) {
-    for (col = 0; col < colsValue; col++) {
-      for (row = 0; row < rowsValue; row++) {
+    for (let col = 0; col < colsValue; col++) {
+      for ( let row = 0; row < rowsValue; row++) {
         if (gameField[col][row] === GameSymbol) {
-          WinHorizontal += 1;
-          console.log("win", WinHorizontal);
+          WinHorizontal++
+          //console.log("win", WinHorizontal);
           if (WinHorizontal === 3) {
             WinHorizontal = 0;
-
             let message = `WIN ${GameSymbol}`;
             socket.emit("EndGame", message);
-
-            //let connection = socket.indexOf(socket);
-
-            if (socket.disconnect()) {
-              console.log("socket disconnected");
-            }
-
-            //console.log("indexof", connection);
-            //connections.splice(connection, 0);
-
-            //console.log("disconnect");
-
-            return [true, WinHorizontal];
+            socket.disconnect()
+            return true;
           } else {
+           continue
           }
-
-          console.log("win", WinHorizontal);
         } else {
           WinHorizontal = 0;
         }
       }
     }
-    //////////////////////////////////////////////////////////////////
-    for (col = 0; col < colsValue; col++) {
-      for (row = 0; row < rowsValue; row++) {
-        if (gameField[col][row] === GameSymbol) {
+  }
+
+  function checkWinVertical(
+    gameField: string[][],
+    GameSymbol: string,
+    WinVertical: number,
+    colsValue: number,
+    rowsValue: number,
+  ){
+    for (let col = 0; col < colsValue; col++) {
+      for (let row = 0; row < rowsValue; row++) {
+        if (gameField[row][col] === GameSymbol) {
           WinVertical++;
-          for (let i = 1; i < 3; i++) {
-            let colNext=col+i
-            if (colNext > colsValue) {
-              break
-             }
-             if (row > rowsValue) {
-              break
-             }
-             
-            if (gameField[colNext][row] === GameSymbol) {
-              WinVertical++;
-              console.log("win", WinVertical);
-              if (WinVertical === 3) {
-                WinVertical = 0;
-                let message = `WIN ${GameSymbol}`;
-                socket.emit("EndGame", message);
-                return true;
+           console.log("winVertical", WinVertical);
+            if (WinVertical === 3) {
+              WinVertical = 0;
+              let message = `WIN ${GameSymbol}`;
+              socket.emit("EndGame", message);
+              return true;
               } else {
                 continue
               }
-            } else {
-              WinVertical = 0;
-              break;
+        } else {
+            WinVertical = 0;
             }
-          }
-        }
       }
     }
-    if (WinHorizontal == 3) {
-      WinHorizontal = 0;
-      return true;
-    } else {
-      WinHorizontal = 0;
-      return false;
-    }
-  }
+  }  
   function CheckWinDiagonal_from_Left_to_Right(
     gameField: string[][],
     GameSymbol: string,
