@@ -5,27 +5,53 @@ import { Server } from "socket.io";
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {});
-let massivPlayer: string[] = [];
+let SocketPlayer: string[] = [];
 let roomId:string=''
+let gameField: string[][] = [];
 let Gameslobby: any= [];
-const games: any = {};
+let Game:any={
+  roomId,
+  SocketPlayer,
+  Gameslobby,
+  gameField,
+};
+let Games: any = {};
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/GamePage/gamePage.html");
 });
 
+
 io.sockets.on("connection", (socket) => {
   console.log("connection is completed");
-  
-  /*   if(Gameslobby.length===0){
+  function CreateGameLobby(){
       roomId = Date.now().toString().slice(8);
       console.log("roomId",roomId)
       console.log("Room to connect: " + roomId);
-      massivPlayer.push(socket.id)
+      SocketPlayer.push(socket.id)
       socket.join(roomId)
-      Gameslobby.push(massivPlayer)
-      socket.emit('start',roomId)
-      //socket.in(roomId).emit("start",roomId);
+      console.log("Комнанта созданна ожидаем 2 игрока");
+      Gameslobby.push(SocketPlayer)
+      //socket.emit('start',roomId)
+      Games.Game.roomId
+      Games.Game.gameField
+      Games.Game.SocketPlayer
+      console.log('Games',Games)
+      console.log('lobby',Gameslobby)
+     }
+     if(Gameslobby.length===0){
+      roomId = Date.now().toString().slice(8);
+      console.log("roomId",roomId)
+      console.log("Room to connect: " + roomId);
+      SocketPlayer.push(socket.id)
+      socket.join(roomId)
+      console.log("Комнанта созданна ожидаем 2 игрока");
+      Gameslobby.push(SocketPlayer)
+      //socket.emit('start',roomId)
+      Games.Game.roomId
+      Games.Game.gameField
+      Games.Game.SocketPlayer
+      console.log('Games',Games)
       console.log('lobby',Gameslobby)
       
     }
@@ -36,7 +62,7 @@ io.sockets.on("connection", (socket) => {
         Gameslobby[i].push(socket.id)
 
         socket.join(roomId)
-        console.log("Комнанта созданна ожидаем 2 игрока");
+       
         console.log('lobby',Gameslobby[i])
         socket.emit('start',roomId)
         console.log('GameslobbyLength',Gameslobby[i].length)
@@ -44,31 +70,30 @@ io.sockets.on("connection", (socket) => {
           console.log("комната для подключения",roomId)
           //socket.to(roomId).emit("start",roomId);
          // socket.emit('start',roomId)
-          massivPlayer = [];
+         roomId='';
+         SocketPlayer = [];
           } 
        //else {
          // console.log("i need to second Players");
        // }
-      }
-        else{
-         continue
+      
+      }else{
+        CreateGameLobby();
         }
       }  
      
-    }*/
+    }
   //  socket.emit('start',roomId)
     
   socket.on("StartGame", (colsValue:number, rowsValue:number) => {
-    let  massivCellAll: string[][] = [];
+    let massivCellAll: string[][] = [];
     let WinHorizontal: number = 0;
     let WinVertical: number = 0;
     let WinDiagonal: number = 0;
-    let col: number = 0;
-    let row: number = 0;
     let nextCell: number = 0.0;
 
     let strCell: string[] = [];
-    let gameField = CreateGamePage(massivCellAll, +colsValue, +rowsValue);
+    gameField = CreateGamePage(massivCellAll, +colsValue, +rowsValue);
     console.log("cell is clicked",  +colsValue, +rowsValue);
 
     socket.on("click_cell", (cordCell_1:number, cordCell_2:number, GameSymbol) => {
