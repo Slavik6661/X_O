@@ -6,16 +6,19 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {});
 let SocketPlayer: string[] = [];
-let roomId:string=''
+let roomId:string = ''; 
 let gameField: string[][] = [];
 let Gameslobby: any= [];
-let Game:any={
+let Game=Object.assign({
   roomId,
-  SocketPlayer,
   Gameslobby,
   gameField,
-};
-let Games: any = {};
+})
+let Games = {
+   ...Game,
+}
+
+
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/GamePage/gamePage.html");
@@ -25,7 +28,9 @@ app.get("/", (req, res) => {
 io.sockets.on("connection", (socket) => {
   console.log("connection is completed");
   function CreateGameLobby(){
-      roomId = Date.now().toString().slice(8);
+     let roomIds = Date.now().toString().slice(8);
+     console.log("roomIds!!!!!!!!!!!",roomIds)
+     //roomId.push(roomIds)
       console.log("roomId",roomId)
       console.log("Room to connect: " + roomId);
       SocketPlayer.push(socket.id)
@@ -33,11 +38,12 @@ io.sockets.on("connection", (socket) => {
       console.log("Комнанта созданна ожидаем 2 игрока");
       Gameslobby.push(SocketPlayer)
       //socket.emit('start',roomId)
-      Games.Game.roomId
-      Games.Game.gameField
-      Games.Game.SocketPlayer
+     
+      Game.roomId
+      Game.gameField
+      Game.SocketPlayer
       console.log('Games',Games)
-      console.log('lobby',Gameslobby)
+      
      }
      if(Gameslobby.length===0){
       roomId = Date.now().toString().slice(8);
@@ -48,9 +54,9 @@ io.sockets.on("connection", (socket) => {
       console.log("Комнанта созданна ожидаем 2 игрока");
       Gameslobby.push(SocketPlayer)
       //socket.emit('start',roomId)
-      Games.Game.roomId
-      Games.Game.gameField
-      Games.Game.SocketPlayer
+      Game.roomId
+      Game.SocketPlayer
+      Game.gameField
       console.log('Games',Games)
       console.log('lobby',Gameslobby)
       
@@ -70,7 +76,7 @@ io.sockets.on("connection", (socket) => {
           console.log("комната для подключения",roomId)
           //socket.to(roomId).emit("start",roomId);
          // socket.emit('start',roomId)
-         roomId='';
+        // roomId='';
          SocketPlayer = [];
           } 
        //else {
@@ -93,7 +99,7 @@ io.sockets.on("connection", (socket) => {
     let nextCell: number = 0.0;
 
     let strCell: string[] = [];
-    gameField = CreateGamePage(massivCellAll, +colsValue, +rowsValue);
+    Game.gameField = CreateGamePage(massivCellAll, +colsValue, +rowsValue);
     console.log("cell is clicked",  +colsValue, +rowsValue);
 
     socket.on("click_cell", (cordCell_1:number, cordCell_2:number, GameSymbol) => {
