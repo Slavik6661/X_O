@@ -1,209 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tik tak toe</title>
+
 </head>
 <style>
-    * {margin: 0; padding: 0;}
+    * {
+        margin: 0;
+        padding: 0;
+    }
 
-.cell {
-  
-    width: 50px;
-    height: 50px;
-    line-height: 50px;
-    text-align: center;
-    display: inline-block;
-    font-size: 26px;
-    border: 1px solid #000;
-   
-    vertical-align: middle;
-    transition: background .1s;
-    cursor: pointer;
-    
-}
+    .cell {
 
-.cell:hover {
-    background-color: #820c0c;
-}
- table td{
-     padding:20px;
-     border: 1px solid #000;
-     cursor: pointer;
- }
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+        text-align: center;
+        display: inline-block;
+        font-size: 26px;
+        border: 1px solid #000;
 
- table td:hover{
-    background-color: #820c0c;
- }
- .divs{
-    border: solid;
-    width: 50px; 
-    height: 50px;
-    padding: 10px;
-    margin-top: 20px;
-    margin-left: 20px;
-    
-   
- }
+        vertical-align: middle;
+        transition: background .1s;
+        cursor: pointer;
 
- #game-field{
-    margin-left: 800px;
-    margin-top: 50px;
- }
- #user{
-    width: 100px;
-    height: 100px;
-     font-size: 30px;
-      border-radius: 5px
- }
+    }
+
+    .cell:hover {
+        background-color: #820c0c;
+    }
+
+    table td {
+        padding: 20px;
+        border: 1px solid #000;
+        cursor: pointer;
+    }
+
+    table td:hover {
+        background-color: #820c0c;
+    }
+
+    .divs {
+        border: solid;
+        width: 50px;
+        height: 50px;
+        padding: 10px;
+        margin-top: 20px;
+        margin-left: 20px;
+
+
+    }
+
+    #game-field {
+        margin-left: 800px;
+        margin-top: 50px;
+    }
+
+    #user {
+        width: 100px;
+        height: 100px;
+        font-size: 30px;
+        border-radius: 5px
+    }
 </style>
+
 <body>
-    <input type="text" id="" value="Ход игрока"></input>  <input type="text" id="user" value=""></input>
-        <div id="cell"></div>
-        <div id="NavigationGames" style="margin-left: 900px;margin-top: 20px;">
-        <input type="number" value='5' id="cols"style="width: 100px;height: 100px; font-size: 50px; border-radius: 5px">X</input> <input type="number" id="rows" value='5' style="width: 100px;height: 100px;font-size: 50px; border-radius: 5px"></input> <br>
-        <button id="StartGame" name="submit" style="width: 223.99306px;height: 100px; font-size: 20px;margin-top: 5px; border-radius: 5px">Начать игру</button>
-        </div>
+    <input type="text" id="" value="Ход игрока"></input> <input type="text" id="user" value=""></input>
+    <div id="cell"></div>
+    <div id="NavigationGames" style="margin-left: 900px;margin-top: 20px;">
+        <input type="number" value='5' id="cols"
+            style="width: 100px;height: 100px; font-size: 50px; border-radius: 5px">X</input> <input type="number"
+            id="rows" value='5' style="width: 100px;height: 100px;font-size: 50px; border-radius: 5px"></input> <br>
+        <button id="StartGame" name="submit"
+            style="width: 223.99306px;height: 100px; font-size: 20px;margin-top: 5px; border-radius: 5px">Начать
+            игру</button>
+    </div>
 </body>
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-   //let socket=io.connect()
-   let but = document.getElementById("StartGame") 
-   let cols=document.getElementById("cols")
-   let rows=document.getElementById("rows")
-   let user = document.getElementById("user")
+    //let socket=io.connect()
+    let but = document.getElementById("StartGame")
+    let cols = document.getElementById("cols")
+    let rows = document.getElementById("rows")
+    let user = document.getElementById("user")
 
-let Players=''
-let PlayersMove =true
+    let Players = ''
+    let PlayersMoove
 
 
-let element = document.querySelector("#cell")
+    let element = document.querySelector("#cell")
 
-but.addEventListener("click",function(e) {
-    let socket=io.connect('http://localhost:3000')
-    Players=(Math.random() + 1).toString(36).substring(7);
-    //PlayersMove=true
-    socket.emit('Player',PlayersMove)
-    if(e.target.id='SatartGame'){
-       
-        if(element.children.length>=1){
-            element.children[0].remove()
+    but.addEventListener("click", function (e) {
+        let socket = io.connect('http://localhost:3000')
+        if (e.target.id = 'SatartGame') {
+
+            if (element.children.length >= 1) {
+                element.children[0].remove()
+
+            } else {
+                console.log('error')
+            }
+
+            let colsValue = cols.value
+            let rowsValue = rows.value
+            CreateGamePage(element, +colsValue, +rowsValue)
+            socket.on('start', (roomId) => {
+                socket.emit('StartGame', roomId, +colsValue, +rowsValue)
+            })
         }
-   // socket.on('start',(roomId)=>{
-    //socket=io.connect(`${roomId}`)
-    //console.log(socket.rooms)
-    let colsValue=cols.value
-    let rowsValue=rows.value
-    CreateGamePage(element,+colsValue,+rowsValue) 
-    socket.emit('StartGame',+colsValue,+rowsValue)
-    }
-    else{
-        console.log('error')
-    }
-   
 
+        //})
 
-//})
+        function CreateGamePage(parent, cols, rows) {
 
-/* socket.on('start',(roomId)=>{
-    console.log('roomId',roomId)
-    socket=io.connected(roomId)
-    console.log(socket.rooms)
-    console.log('sssssssssssssssss')
-    let colsValue=cols.value
-    let rowsValue=rows.value
-    socket.emit('StartGame',+colsValue,+rowsValue)
-    CreateGamePage(element,+colsValue,+rowsValue)
-  }) */
-    
+            let table = document.createElement("table")
+            table.setAttribute("id", 'game-field')
 
-function CreateGamePage(parent,cols,rows){
+            for (let i = 0; i < cols; i++) {
 
-    let table= document.createElement("table")
-    table.setAttribute("id", 'game-field')
+                let tr = document.createElement("tr")
+                tr.setAttribute("id", `${i}`)
+                tr.setAttribute("class", "divs")
 
-    for(let i=0;i<cols;i++){
-        let tr= document.createElement("tr")
-        tr.setAttribute("id" ,`${i}`)
-        tr.setAttribute("class" ,"divs")
+                for (let j = 0; j < rows; j++) {
 
-        for(let j=0;j<rows;j++){
-        let td= document.createElement("td")
-        td.setAttribute("id" ,`${i+'.'+j}`) //  td.setAttribute("id" ,`${i+(j/10)}`)
-        td.setAttribute("class" ,"divs")
-        tr.appendChild(td)
-       
-        }   
-        table.appendChild(tr)
-       
-    }
-    parent.appendChild(table)
-//}
+                    let td = document.createElement("td")
+                    td.setAttribute("id", `${i + '.' + j}`) //  td.setAttribute("id" ,`${i+(j/10)}`)
+                    td.setAttribute("class", "divs")
+                    tr.appendChild(td)
 
-user.value=innerHTML='X'
-let playerMoveX=null;
-let playerMoveO=null;
-  socket.on('EndGame',(message)=>{
-    alert(message)
-})  
+                }
+                table.appendChild(tr)
 
- document.getElementById("game-field").addEventListener("click",function click(e){
-     
-    console.log(document.getElementById("game-field"))
-    console.log(e.target.classList.contains('active'))
-    
-    if (!e.target.classList.contains('active')){
-       
-        if(PlayersMove==true ){
+            }
+            parent.appendChild(table)
+        }
+
+        user.value = innerHTML = 'X'
+        let GameSymbol
+        socket.on('EndGame', (message) => {
+            alert(message)
+
+        })
+
+        document.getElementById("game-field").addEventListener("click", function click(e) {
+
+            console.log(document.getElementById("game-field"))
+            console.log(e.target.classList.contains('active'))
             
-            user.value=innerHTML='0'
-            console.log('user',user.value)
-            let GameSymbol=e.target.innerHTML='X'
-            e.target.classList.add('active')
-            
-            let idCells=e.target.id
-            console.log('id-',idCells)
-            let CordCell=e.target.id.split('.')
-            let X= document.getElementById(`${idCells}`)
-            console.log('x---',X)
+            if (!e.target.classList.contains('active')) {
+                
+                    console.log('PlayersMoove', PlayersMoove)
+                if (PlayersMoove === 'X') {
 
-            let cell_1=CordCell[0]// horison
-            let cell_2=CordCell[1]// vertical
-            console.log(GameSymbol+'-'+cell_1+'-'+cell_2)
-            playerMoveX++
-            let playerMove=playerMoveX
-            console.log(playerMoveX)
-            socket.emit('click_cell',cell_1,cell_2,GameSymbol,idCells,+playerMove)
+                    user.value = innerHTML = '0'
+                    console.log('user', user.value)
+                    GameSymbol = e.target.innerHTML = 'X'
 
-            PlayersMove=false;
+                    e.target.classList.add('active')
+
+
+                    let CordCell = e.target.id.split('.')
+                   // let X = document.getElementById(`${idCells}`)
+                
+                    let cell_1 = CordCell[0]// horison
+                    let cell_2 = CordCell[1]// vertical
+                    console.log(GameSymbol + '-' + cell_1 + '-' + cell_2)
+
+                    socket.emit('click_cell', cell_1, cell_2, GameSymbol)
+
+                    PlayersMoove = '0';
+                }
+
+                else {
+                    user.value = innerHTML = 'X'
+                    GameSymbol = e.target.innerHTML = '0'
+                    e.target.classList.add('active')
+                    let CordCell = e.target.id.split('.')
+                    let cell_1 = CordCell[0]// horison
+                    let cell_2 = CordCell[1]// vertical
+                    console.log(GameSymbol + '-' + cell_1 + '-' + cell_2)
+                    socket.emit('click_cell', cell_1, cell_2, GameSymbol)
+                    PlayersMoove = 'X';
+                }
+             
+            }else {
             }
         
-           else{
-            user.value=innerHTML='X'
-            let GameSymbol= e.target.innerHTML='0'
-            e.target.classList.add('active')
-            let CordCell=e.target.id.split('.')
-            let cell_1=CordCell[0]// horison
-            let cell_2=CordCell[1]// vertical
-            console.log(GameSymbol+'-'+cell_1+'-'+cell_2)
-            playerMoveO++;
-            console.log(playerMoveO)
-            socket.emit('click_cell',cell_1,cell_2,GameSymbol,+playerMoveO)
-            PlayersMove=true;
-           }
-          
-    }
-    else{     
+            
+        })
+        socket.on('cordCell', ({ cordCell, GameSymbol}) => {
+            let X = document.getElementById(cordCell)
+            X.innerHTML =GameSymbol
+            
+            })
 
-    }
-    
+    })
 
-   
-})
-}
-}) 
 
 
 </script>
+
 </html>

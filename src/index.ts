@@ -1,362 +1,408 @@
+import e from "express";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
+type Game = {
+  roomId: string;
+  Gameslobby: string[];
+  gameField: string[][];
+  step: "X" | "0";
+};
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {});
-let SocketPlayer: string[] = [];
-let roomId:string = ''; 
-let gameField: string[][] = [];
-let Gameslobby: any= [];
-let Game=Object.assign({
-  roomId,
-  Gameslobby,
-  gameField,
-})
-let Games = {
-   ...Game,
+
+const Games: Record<string, Game> = {};
+
+function CreateGamePage(
+  // massivCellAll: string[][],
+  colsValue: number,
+  rowsValue: number
+) {
+  const massivCellAll = [];
+  for (let i = 0; i < colsValue; i++) {
+    const innerArray = new Array(rowsValue).fill("null");
+    massivCellAll.push(innerArray);
+  }
+  /* console.log({
+    massivCellAll,
+    colsValue,
+    rowsValue,
+  }); */
+
+  return massivCellAll;
 }
 
-
+const createGame = (): Game => ({
+  roomId: Date.now().toString().slice(8),
+  Gameslobby: [],
+  gameField: [],
+  step: Math.random() < 0.5 ? "X" : "0",
+});
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/GamePage/gamePage.html");
 });
 
-
 io.sockets.on("connection", (socket) => {
-  console.log("connection is completed");
-  function CreateGameLobby(){
-     let roomIds = Date.now().toString().slice(8);
-     console.log("roomIds!!!!!!!!!!!",roomIds)
-     //roomId.push(roomIds)
-      console.log("roomId",roomId)
-      console.log("Room to connect: " + roomId);
-      SocketPlayer.push(socket.id)
-      socket.join(roomId)
-      console.log("Комнанта созданна ожидаем 2 игрока");
-      Gameslobby.push(SocketPlayer)
-      //socket.emit('start',roomId)
-     
-      Game.roomId
-      Game.gameField
-      Game.SocketPlayer
-      console.log('Games',Games)
-      
-     }
-     if(Gameslobby.length===0){
-      roomId = Date.now().toString().slice(8);
-      console.log("roomId",roomId)
-      console.log("Room to connect: " + roomId);
-      SocketPlayer.push(socket.id)
-      socket.join(roomId)
-      console.log("Комнанта созданна ожидаем 2 игрока");
-      Gameslobby.push(SocketPlayer)
-      //socket.emit('start',roomId)
-      Game.roomId
-      Game.SocketPlayer
-      Game.gameField
-      console.log('Games',Games)
-      console.log('lobby',Gameslobby)
-      
-    }
-    else{
-      for(let i=0; i<Gameslobby.length; i++){
-        if(Gameslobby[i].length===1){
-        console.log("лобби найденно")
-        Gameslobby[i].push(socket.id)
+  const gameInfo = Object.entries(Games).find(
+    ([, value]) => value.Gameslobby.length < 2
+  );
 
-        socket.join(roomId)
-       
-        console.log('lobby',Gameslobby[i])
-        socket.emit('start',roomId)
-        console.log('GameslobbyLength',Gameslobby[i].length)
-          if (Gameslobby[i].length === 2) {
-          console.log("комната для подключения",roomId)
-          //socket.to(roomId).emit("start",roomId);
-         // socket.emit('start',roomId)
-        // roomId='';
-         SocketPlayer = [];
-          } 
-       //else {
-         // console.log("i need to second Players");
-       // }
-      
-      }else{
-        CreateGameLobby();
-        }
-      }  
-     
-    }
+  let game: Game;
+  if (!gameInfo) {
+    game = createGame();
+  } else {
+    [, game] = gameInfo;
+  }
+
+  const { roomId } = game;
+
+  game.Gameslobby.push(socket.id);
+
+  Games[roomId] = game;
+
+  socket.join(roomId);
+  //const PlayersMoove=game.step
+  //socket.emit('PlayersMoove',PlayersMoove);
+  socket.emit("start", roomId);
+
+  // console.log("connection is completed");
+  // function CreateGameLobby() {
+  //   Game.roomId = Date.now().toString().slice(8);
+  //   console.log("roomId", Game.roomId);
+  //   console.log("Room to connect: " + Game.roomId);
+  //   SocketPlayer.push(socket.id);
+  //   socket.join(Game.roomId);
+  //   console.log("Комнанта созданна ожидаем 2 игрока");
+  //   Gameslobby.push(SocketPlayer);
+  //   //socket.emit('start',roomId)
+  //   console.log("massiv", massivCellAll);
+  //   console.log("Games", Games);
+  // }
+  // if (Gameslobby.length === 0) {
+  //   Game.roomId = Date.now().toString().slice(8);
+  //   console.log("roomId", Game.roomId);
+  //   console.log("Room to connect: " + Game.roomId);
+  //   SocketPlayer.push(socket.id);
+  //   socket.join(Game.roomId);
+  //   console.log("Комнанта созданна ожидаем 2 игрока");
+  //   Gameslobby.push(SocketPlayer);
+  //   //socket.emit('start',roomId)
+  //   console.log("massiv", massivCellAll);
+  //   console.log("Games", Games);
+  // } else {
+  //   for (let i = 0; i < Gameslobby.length; i++) {
+  //     if (Gameslobby[i].length === 1) {
+  //       console.log("лобби найденно");
+  //       Gameslobby[i].push(socket.id);
+
+  //       socket.join(Game.roomId);
+
+  //       console.log("lobby", Gameslobby[i]);
+  //       //socket.emit('start',roomId)
+  //       //console.log('GameslobbyLength',Gameslobby[i].length)
+  //       if (Gameslobby[i].length === 2) {
+  //         console.log("комната для подключения", Game.roomId);
+  //         //socket.to(roomId).emit("start",roomId);
+  //         // socket.emit('start',roomId)
+  //         SocketPlayer = [];
+  //         Gameslobby = [];
+  //       }
+  //       //else {
+  //       // console.log("i need to second Players");
+  //       // }
+  //     } else {
+  //       CreateGameLobby();
+  //     }
+  //   }
+  // }
   //  socket.emit('start',roomId)
-    
-  socket.on("StartGame", (colsValue:number, rowsValue:number) => {
-    let massivCellAll: string[][] = [];
-    let WinHorizontal: number = 0;
-    let WinVertical: number = 0;
-    let WinDiagonal: number = 0;
-    let nextCell: number = 0.0;
 
-    let strCell: string[] = [];
-    Game.gameField = CreateGamePage(massivCellAll, +colsValue, +rowsValue);
-    console.log("cell is clicked",  +colsValue, +rowsValue);
+  socket.on(
+    "StartGame",
+    (roomId: string, colsValue: number, rowsValue: number) => {
+      let WinHorizontal: number = 0;
+      let WinVertical: number = 0;
+      let WinDiagonal: number = 0;
+      let nextCell: number = 0.0;
+      let strCell: string[] = [];
 
-    socket.on("click_cell", (cordCell_1:number, cordCell_2:number, GameSymbol) => {
-      console.log("click is completed", cordCell_1, cordCell_2);
-     
-      
-        if (gameField[+cordCell_1][+cordCell_2] === "null") {
-          gameField[+cordCell_1][+cordCell_2] = GameSymbol;
-          console.log(gameField);
+      const game = Games[roomId];
+
+      game.gameField = CreateGamePage(+colsValue, +rowsValue);
+      console.log("game field", game.gameField);
+      let PlayersMoove=game.step
+      socket.on(
+        "click_cell",
+        (cordCell_1: number, cordCell_2: number, GameSymbol: string) => {
+          console.log("click is completed", cordCell_1, cordCell_2);
+          console.log("socket rooms", socket.rooms);
           
-           console.log(CheckWinDiagonal_from_Left_to_Right(gameField,
-            GameSymbol,
-            nextCell,
-            WinDiagonal,
-            strCell,
-            colsValue,
-            rowsValue)) 
+          console.log("players moove", PlayersMoove)
+          socket.emit('PlayersMoove', PlayersMoove)
+          
+          if (game.gameField[+cordCell_1][+cordCell_2] === "null") {
+            game.gameField[+cordCell_1][+cordCell_2] = GameSymbol;
 
-           console.log(CheckWinDiagonal_from_Right_to_Left(gameField,
-              GameSymbol,
-              nextCell,
-              WinDiagonal,
-              strCell,
-              colsValue,
-              rowsValue))   
+            let cordCell = `${cordCell_1}.${cordCell_2}`;
+
+            socket.to(roomId).emit("cordCell", { cordCell, GameSymbol });
+          /*   if(PlayersMoove==='X'){
+              PlayersMoove='0'
+            }
+            else{PlayersMoove='X'} */
+            console.log(game.gameField);
 
             console.log(
-            checkWinHorizontal(
-              gameField,
-              GameSymbol,
-              WinHorizontal,
-              colsValue,
-              rowsValue,
-            ),
-          );  
+              CheckWinDiagonal_from_Left_to_Right(
+                game.gameField,
+                GameSymbol,
+                nextCell,
+                WinDiagonal,
+                strCell,
+                colsValue,
+                rowsValue
+              )
+            );
 
-             console.log(
-            checkWinVertical(
-              gameField,
-              GameSymbol,
-              WinVertical,
-              colsValue,
-              rowsValue,
-            ),
-          );   
-          
-        }
-      else{console.log("выход за приделы массива");}   
-    });
- 
+            console.log(
+              CheckWinDiagonal_from_Right_to_Left(
+                game.gameField,
+                GameSymbol,
+                nextCell,
+                WinDiagonal,
+                strCell,
+                colsValue,
+                rowsValue
+              )
+            );
 
-  function checkWinHorizontal(
-    gameField: string[][],
-    GameSymbol: string,
-    WinHorizontal: number,
-    colsValue: number,
-    rowsValue: number,
-  ) {
-    for (let col = 0; col < colsValue; col++) {
-      for ( let row = 0; row < rowsValue; row++) {
-        if (gameField[col][row] === GameSymbol) {
-          WinHorizontal++
-          //console.log("win", WinHorizontal);
-          if (WinHorizontal === 3) {
-            WinHorizontal = 0;
-            let message = `WIN ${GameSymbol}`;
-            socket.emit("EndGame", message);
-            socket.disconnect()
-            return true;
+            console.log(
+              checkWinHorizontal(
+                game.gameField,
+                GameSymbol,
+                WinHorizontal,
+                colsValue,
+                rowsValue
+              )
+            );
+
+            console.log(
+              checkWinVertical(
+                game.gameField,
+                GameSymbol,
+                WinVertical,
+                colsValue,
+                rowsValue
+              )
+            );
           } else {
-           continue
+            console.log("выход за приделы массива");
           }
-        } else {
-          WinHorizontal = 0;
+        }
+      );
+
+      function checkWinHorizontal(
+        gameField: string[][],
+        GameSymbol: string,
+        WinHorizontal: number,
+        colsValue: number,
+        rowsValue: number
+      ) {
+        for (let col = 0; col < colsValue; col++) {
+          for (let row = 0; row < rowsValue; row++) {
+            if (gameField[col][row] === GameSymbol) {
+              WinHorizontal++;
+              //console.log("win", WinHorizontal);
+              if (WinHorizontal === 3) {
+                WinHorizontal = 0;
+                let message = `WIN ${GameSymbol}`;
+                socket.emit("EndGame", message);
+                socket.disconnect(true);
+                return true;
+              } else {
+                continue;
+              }
+            } else {
+              WinHorizontal = 0;
+            }
+          }
+        }
+      }
+
+      function checkWinVertical(
+        gameField: string[][],
+        GameSymbol: string,
+        WinVertical: number,
+        colsValue: number,
+        rowsValue: number
+      ) {
+        for (let col = 0; col < colsValue; col++) {
+          for (let row = 0; row < rowsValue; row++) {
+            if (gameField[row][col] === GameSymbol) {
+              WinVertical++;
+              console.log("winVertical", WinVertical);
+              if (WinVertical === 3) {
+                WinVertical = 0;
+                let message = `WIN ${GameSymbol}`;
+                socket.emit("EndGame", message);
+                socket.disconnect(true);
+                return true;
+              } else {
+                continue;
+              }
+            } else {
+              WinVertical = 0;
+            }
+          }
+        }
+      }
+      function CheckWinDiagonal_from_Left_to_Right(
+        gameField: string[][],
+        GameSymbol: string,
+        nextCell: number,
+        WinDiagonal: number,
+        strCell: string[],
+        colsValue: number,
+        rowsValue: number
+      ) {
+        //////////Проверка с верху в них || с лева на право////////////
+        for (let col = 0; col < colsValue; col++) {
+          for (let row = 0; row < rowsValue; row++) {
+            if (gameField[col][row] === GameSymbol) {
+              nextCell = col + row / 10; //0-0
+              WinDiagonal++;
+
+              /*********************************************/
+              for (let i = 1; i < 3; i++) {
+                /********************************************/
+
+                let i_1 = "";
+                let j_1 = "";
+                let NextCell_i: number = 0;
+                let NextCell_j: number = 0;
+
+                strCell = nextCell.toFixed(1).toString().split(".");
+                i_1 = strCell[0];
+                j_1 = strCell[1];
+                NextCell_i = +i_1 + i;
+                NextCell_j = +j_1 + i;
+
+                console.log(
+                  "243",
+                  NextCell_i,
+                  NextCell_j,
+                  "WinPoints",
+                  WinDiagonal,
+                  rowsValue - 1
+                );
+                if (NextCell_i >= colsValue || NextCell_j >= rowsValue) {
+                  console.log("error massiv range");
+                  break;
+                } else {
+                  console.log("Проверка работы ");
+
+                  if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
+                    WinDiagonal++;
+
+                    if (WinDiagonal === 3) {
+                      console.log("1");
+                      let message = `Game End Wins ${GameSymbol}`;
+                      socket.emit("EndGame", message);
+                      socket.disconnect(true);
+                      WinDiagonal = 0;
+                      return true;
+                    }
+                  } else {
+                    WinDiagonal = 0;
+                    break;
+                  }
+                }
+              }
+            } else {
+              WinDiagonal = 0;
+            }
+          }
+        }
+      }
+
+      function CheckWinDiagonal_from_Right_to_Left(
+        gameField: string[][],
+        GameSymbol: string,
+        nextCell: number,
+        WinDiagonal: number,
+        strCell: string[],
+        colsValue: number,
+        rowsValue: number
+      ) {
+        for (let col = 0; col < colsValue; col++) {
+          for (let row = 0; row < rowsValue; row++) {
+            if (gameField[col][row] === GameSymbol) {
+              nextCell = col + row / 10; //0-0
+              WinDiagonal++;
+
+              /*********************************************/
+              for (let i = 1; i < 3; i++) {
+                /********************************************/
+
+                let i_1 = "";
+                let j_1 = "";
+                let NextCell_i: number = 0;
+                let NextCell_j: number = 0;
+
+                strCell = nextCell.toFixed(1).toString().split(".");
+                i_1 = strCell[0];
+                j_1 = strCell[1];
+                NextCell_i = +i_1 + i;
+                NextCell_j = +j_1 - i;
+
+                console.log(
+                  "243",
+                  NextCell_i,
+                  NextCell_j,
+                  "WinPoints",
+                  WinDiagonal,
+                  rowsValue - 1
+                );
+                if (NextCell_i >= colsValue || NextCell_j >= rowsValue) {
+                  console.log("error massiv range");
+                  break;
+                } else {
+                  console.log("Проверка работы ");
+
+                  if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
+                    WinDiagonal++;
+
+                    if (WinDiagonal === 3) {
+                      console.log("1");
+                      let message = `Game End Wins ${GameSymbol}`;
+                      socket.emit("EndGame", message);
+                      socket.disconnect(true);
+                      WinDiagonal = 0;
+                      return true;
+                    }
+                  } else {
+                    WinDiagonal = 0;
+                    break;
+                  }
+                }
+              }
+            } else {
+              WinDiagonal = 0;
+            }
+          }
         }
       }
     }
-  }
+  ); //Ssoket startGame
+}); //soket connect
 
-  function checkWinVertical(
-    gameField: string[][],
-    GameSymbol: string,
-    WinVertical: number,
-    colsValue: number,
-    rowsValue: number,
-  ){
-    for (let col = 0; col < colsValue; col++) {
-      for (let row = 0; row < rowsValue; row++) {
-        if (gameField[row][col] === GameSymbol) {
-          WinVertical++;
-           console.log("winVertical", WinVertical);
-            if (WinVertical === 3) {
-              WinVertical = 0;
-              let message = `WIN ${GameSymbol}`;
-              socket.emit("EndGame", message);
-              return true;
-              } else {
-                continue
-              }
-        } else {
-            WinVertical = 0;
-            }
-      }
-    }
-  }  
-  function CheckWinDiagonal_from_Left_to_Right(
-    gameField: string[][],
-    GameSymbol: string,
-    nextCell: number,
-    WinDiagonal: number,
-    strCell: string[],
-    colsValue: number,
-    rowsValue: number,
-  ) {
-    //////////Проверка с верху в них || с лева на право////////////
-    for (let col=0; col < colsValue; col++) {
-      for (let row = 0; row < rowsValue; row++) {
-       
-        if (gameField[col][row] === GameSymbol) {
-          nextCell = col + row / 10; //0-0
-          WinDiagonal++;
-
-          /*********************************************/
-          for (let i = 1; i < 3; i++) {
-          /********************************************/
-            
-            let i_1 = "";
-            let j_1 = "";
-            let NextCell_i:number=0
-            let NextCell_j:number=0
-
-            strCell = nextCell.toFixed(1).toString().split(".");
-            i_1 =  strCell[0];
-            j_1 = strCell[1];
-             NextCell_i=(+i_1 + i)
-             NextCell_j=(+j_1 + i)
-            
-             console.log('243',NextCell_i,NextCell_j,'WinPoints',WinDiagonal,rowsValue-1)
-            if ( (NextCell_i >= colsValue) || ( NextCell_j >= rowsValue) ){
-              console.log('error massiv range')
-              break;
-            }else{ console.log('Проверка работы ')
-            
-            
-           
-             if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
-              WinDiagonal++;
-
-              if (WinDiagonal === 3) {
-                console.log("1");
-                let message = `Game End Wins ${GameSymbol}`;
-                socket.emit("EndGame", message);
-                WinDiagonal = 0;
-                return true;
-              }
-             
-            }else {
-              WinDiagonal = 0;
-              break;
-            }
-          } 
-              
-          }
-        
-        }else{
-          WinDiagonal = 0;
-        }  
-      }
-    }  
-  } 
-  
-  function CheckWinDiagonal_from_Right_to_Left(
-    gameField: string[][],
-    GameSymbol: string,
-    nextCell: number,
-    WinDiagonal: number,
-    strCell: string[],
-    colsValue: number,
-    rowsValue: number,
-  ) {
-   
-    for (let col=0; col < colsValue; col++) {
-      for (let row = 0; row < rowsValue; row++) {
-       
-        if (gameField[col][row] === GameSymbol) {
-          nextCell = col + row / 10; //0-0
-          WinDiagonal++;
-
-          /*********************************************/
-          for (let i = 1; i < 3; i++) {
-          /********************************************/
-            
-            let i_1 = "";
-            let j_1 = "";
-            let NextCell_i:number=0
-            let NextCell_j:number=0
-
-            strCell = nextCell.toFixed(1).toString().split(".");
-            i_1 =  strCell[0];
-            j_1 = strCell[1];
-             NextCell_i=(+i_1 + i)
-             NextCell_j=(+j_1 - i)
-            
-             console.log('243',NextCell_i,NextCell_j,'WinPoints',WinDiagonal,rowsValue-1)
-            if ( (NextCell_i >= colsValue) || ( NextCell_j >= rowsValue) ){
-              console.log('error massiv range')
-              break;
-            }else{ console.log('Проверка работы ')
-            
-            
-           
-             if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
-              WinDiagonal++;
-
-              if (WinDiagonal === 3) {
-                console.log("1");
-                let message = `Game End Wins ${GameSymbol}`;
-                socket.emit("EndGame", message);
-                WinDiagonal = 0;
-                return true;
-              }
-             
-            }else {
-              WinDiagonal = 0;
-              break;
-            }
-          } 
-              
-          }
-        
-        }else{
-          WinDiagonal = 0;
-        }  
-      }
-    }  
-  }  
-
-
-  function CreateGamePage(
-    massivCellAll: string[][],
-    colsValue: number,
-    rowsValue: number,
-  ) {
-    for (let i = 0; i < colsValue; i++) {
-      const innerArray = new Array(rowsValue).fill("null");
-      massivCellAll.push(innerArray);
-    }
-    console.log("outherArray :>> ", massivCellAll);
-
-    return massivCellAll;
-  }
-});//Ssoket startGame
-});//soket connect
-
-  httpServer.listen(3000, () => {
+httpServer.listen(3000, () => {
   console.log("server listening on port 3000");
-  });
+});
 ////"start": "npx ts-node src/index.ts"
 /* "start:ts": "tsc-w",
     "start:js": "nodemon/build/index.js",
