@@ -37,10 +37,12 @@
         padding: 20px;
         border: 1px solid #000;
         cursor: pointer;
+     
     }
 
     table td:hover {
         background-color: #820c0c;
+        
     }
 
     .divs {
@@ -57,6 +59,7 @@
     #game-field {
         margin-left: 800px;
         margin-top: 50px;
+       
     }
 
     #user {
@@ -65,6 +68,9 @@
         font-size: 30px;
         border-radius: 5px
     }
+   
+
+   
 </style>
 
 <body>
@@ -88,10 +94,10 @@
     let rows = document.getElementById("rows")
     let user = document.getElementById("user")
 
-    let Players = ''
-    let PlayersMoove
-
-
+    let stepP=''
+    let symbolP=''
+    let PlayersSymbol;
+    let playerStep=''
     let element = document.querySelector("#cell")
 
     but.addEventListener("click", function (e) {
@@ -108,8 +114,22 @@
             let colsValue = cols.value
             let rowsValue = rows.value
             CreateGamePage(element, +colsValue, +rowsValue)
-            socket.on('start', (roomId) => {
+
+            socket.on('start', ({roomId, symbol, step}) => {
+
+                PlayersSymbol = symbol;
+                playerStep=step;
+                console.log('START', {roomId, symbol, step})
                 socket.emit('StartGame', roomId, +colsValue, +rowsValue)
+
+              /*   if (symbol === 'X') {
+                    document.getElementById("game-field").style.pointerEvents = "auto"
+                    
+                }
+                else {
+                    document.getElementById("game-field").style.pointerEvents = "none"
+                } */
+                
             })
         }
 
@@ -141,63 +161,82 @@
         }
 
         user.value = innerHTML = 'X'
-        let GameSymbol
+        // let PlayersMoove=''
+        let GameSymbol = ''
+      
+       
         socket.on('EndGame', (message) => {
             alert(message)
 
+
         })
-
+           
         document.getElementById("game-field").addEventListener("click", function click(e) {
-
-            console.log(document.getElementById("game-field"))
-            console.log(e.target.classList.contains('active'))
+            socket.on('stepPlayer', ({step}) => {
+        stepP=step
+        })
+            //console.log(e.target.classList.contains('active'))
+           
             
+
             if (!e.target.classList.contains('active')) {
-                
-                    console.log('PlayersMoove', PlayersMoove)
-                if (PlayersMoove === 'X') {
+                    
+                if (PlayersSymbol === 'X') {
+                  
 
                     user.value = innerHTML = '0'
-                    console.log('user', user.value)
-                    GameSymbol = e.target.innerHTML = 'X'
+                   
+                    GameSymbol = e.target.innerHTML = PlayersSymbol
 
                     e.target.classList.add('active')
 
 
                     let CordCell = e.target.id.split('.')
-                   // let X = document.getElementById(`${idCells}`)
+                    
+
+                    let cell_1 = CordCell[0]// horison
+                    let cell_2 = CordCell[1]// vertical
+                    console.log(GameSymbol + '-' + cell_1 + '-' + cell_2)
+                    //PlayersMoove = '0';
+                    PlayerTurn=2
+                    socket.emit('click_cell', cell_1, cell_2, GameSymbol, PlayersSymbol)
+                   // document.getElementById("game-field").style.pointerEvents = "none";
                 
-                    let cell_1 = CordCell[0]// horison
-                    let cell_2 = CordCell[1]// vertical
-                    console.log(GameSymbol + '-' + cell_1 + '-' + cell_2)
 
-                    socket.emit('click_cell', cell_1, cell_2, GameSymbol)
-
-                    PlayersMoove = '0';
-                }
-
-                else {
+                } else {
+                   
                     user.value = innerHTML = 'X'
-                    GameSymbol = e.target.innerHTML = '0'
+                    GameSymbol = e.target.innerHTML = PlayersSymbol
                     e.target.classList.add('active')
                     let CordCell = e.target.id.split('.')
                     let cell_1 = CordCell[0]// horison
                     let cell_2 = CordCell[1]// vertical
                     console.log(GameSymbol + '-' + cell_1 + '-' + cell_2)
-                    socket.emit('click_cell', cell_1, cell_2, GameSymbol)
-                    PlayersMoove = 'X';
+                    //PlayersMoove = 'X';
+                    socket.emit('click_cell', cell_1, cell_2, GameSymbol, PlayersSymbol)
+                    
                 }
-             
-            }else {
             }
         
-            
-        })
-        socket.on('cordCell', ({ cordCell, GameSymbol}) => {
-            let X = document.getElementById(cordCell)
-            X.innerHTML =GameSymbol
-            
-            })
+    })
+
+
+    socket.on('cordCell', ({ cordCell, GameSymbol, step }) => {
+        console.log('STEP', step)
+        //playerStep = step
+        let X = document.getElementById(cordCell)
+        X.innerHTML = GameSymbol
+
+    })
+    
+    
+   /*  if(PlayersSymbol===step){
+            document.getElementById("game-field").style.pointerEvents = "auto"; 
+        }
+        else{
+            document.getElementById("game-field").style.pointerEvents = "none"; 
+        } */
+       
 
     })
 
