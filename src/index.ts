@@ -164,7 +164,8 @@ io.sockets.on("connection", (socket) => {
               )
             );
 
-            console.log(Check_draw(  game.gameField,
+            console.log(Check_draw(  
+              game.gameField,
               GameSymbol,
               WinHorizontal,
               colsValue,
@@ -186,15 +187,35 @@ io.sockets.on("connection", (socket) => {
           for (let row = 0; row < rowsValue; row++) {
             if (gameField[col][row] === GameSymbol) {
               WinHorizontal++;
-              //console.log("win", WinHorizontal);
-              if (WinHorizontal === 3) {
-                WinHorizontal = 0;
-                let message = `WIN ${GameSymbol}`;
-                socket.emit("EndGame", message);
-                socket.disconnect(true);
-                return true;
-              } else {
-                continue;
+              console.log("WinHorizontal", WinHorizontal);
+              for (let i = 1; i < 3; i++) {
+                let i_1 = `${col}`;
+                let j_1 = `${row}`;
+                let NextCell_i: number = 0;
+                let NextCell_j: number = 0;
+                NextCell_i = +i_1;
+                NextCell_j = +j_1+i;
+                console.log(` ${NextCell_j}>${rowsValue}`)
+                if (NextCell_j >= rowsValue) {
+                  console.log("error massiv range");
+                  WinHorizontal=0
+                  break;
+                } else {
+                  if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
+                    WinHorizontal++
+                    console.log("winVertical доп", WinHorizontal);
+                    if (WinHorizontal === 3) {
+                      WinHorizontal++;
+                      let message = `WIN ${GameSymbol}`;
+                      socket.emit("EndGame", message);
+                      socket.disconnect(true);
+                      return true;
+                    }
+                  } else {
+                    WinHorizontal=0;
+                    break;
+                  }
+                }
               }
             } else {
               WinHorizontal = 0;
@@ -210,19 +231,41 @@ io.sockets.on("connection", (socket) => {
         colsValue: number,
         rowsValue: number
       ) {
-        for (let col = 0; col < colsValue; col++) {
-          for (let row = 0; row < rowsValue; row++) {
-            if (gameField[row][col] === GameSymbol) {
+        for (let row = 0; row < colsValue; row++) {
+          for (let col = 0; col < rowsValue; col++) {
+            if (gameField[col][row] === GameSymbol) {
+              console.log(`символ обнаружил'${col},${row}`);
               WinVertical++;
-              console.log("winVertical", WinVertical);
-              if (WinVertical === 3) {
-                WinVertical = 0;
-                let message = `WIN ${GameSymbol}`;
-                socket.emit("EndGame", message);
-                socket.disconnect(true);
-                return true;
-              } else {
-                continue;
+
+              for (let i = 1; i < 3; i++) {
+                let i_1 = `${col}`;
+                let j_1 = `${row}`;
+                let NextCell_i: number = 0;
+                let NextCell_j: number = 0;
+                NextCell_i = +i_1 + i;
+                NextCell_j = +j_1;
+                console.log("winVertical", WinVertical);
+                console.log(`vertical ${NextCell_i}>${colsValue}`)
+                if (NextCell_i >= colsValue) {
+                  console.log("error massiv range");
+                  WinVertical=0
+                  break;
+                } else {
+                  if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
+                    WinVertical++;
+                    console.log("winVertical доп", WinVertical);
+                    if (WinVertical === 3) {
+                      WinVertical = 0;
+                      let message = `WIN ${GameSymbol}`;
+                      socket.emit("EndGame", message);
+                      socket.disconnect(true);
+                      return true;
+                    }
+                  } else {
+                    WinVertical = 0;
+                    break;
+                  }
+                }
               }
             } else {
               WinVertical = 0;
@@ -259,16 +302,16 @@ io.sockets.on("connection", (socket) => {
 
                 if (NextCell_i >= colsValue || NextCell_j >= rowsValue) {
                   console.log("error massiv range");
+                  WinDiagonal=0;
                   break;
                 } else {
-                  console.log("Проверка работы ");
 
                   if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
                     WinDiagonal++;
 
                     if (WinDiagonal === 3) {
                       console.log("1");
-                      let message = `Game End Wins ${GameSymbol}`;
+                      let message = `Game End Wins L to R ${GameSymbol}`;
                       socket.emit("EndGame", message);
                       socket.disconnect(true);
                       WinDiagonal = 0;
@@ -325,7 +368,7 @@ io.sockets.on("connection", (socket) => {
 
                     if (WinDiagonal === 3) {
                       console.log("1");
-                      let message = `Game End Wins ${GameSymbol}`;
+                      let message = `Game End Wins R to L ${GameSymbol}`;
                       socket.emit("EndGame", message);
                       socket.disconnect(true);
                       WinDiagonal = 0;
@@ -355,19 +398,21 @@ io.sockets.on("connection", (socket) => {
         for (let col = 0; col < colsValue; col++) {
           for (let row = 0; row < rowsValue; row++) {
 
-            if(gameField[col][row]==='hull'){
+            if(gameField[col][row]==='null'){
               k++
-              console.log('k!!!!!!!!!!!!!!!!',k)
+             console.log('k!!!!!!!!!!!!!!!!',k)
             }
             else{
             continue
             }
-            if(k===0){
-              let message = `Ничья`;
-              socket.emit("EndGame", message);
-              socket.disconnect(true);
-            }
+           
           }
+        }
+        console.log('k после цикла ',k)
+        if(k===0){
+          let message = `Ничья`;
+          socket.emit("EndGame", message);
+          socket.disconnect(true);
         }
 
       }
