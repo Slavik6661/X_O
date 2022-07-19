@@ -82,19 +82,6 @@ io.sockets.on("connection", (socket) => {
 
       const game = Games[roomId];
      
-      // let PlayerSymbol = game.step;
-      // let mainPalyer: string = "";
-      // let Opponent: string = "";
-
-      // if (PlayerSymbol === "X") {
-      //   mainPalyer = "X";
-      //   Opponent = "0";
-      // } else {
-      //   mainPalyer = "0";
-      //   Opponent = "X";
-      // }
-      // socket.to(roomId).emit('PlayersMoove',PlayersMoove);
-
       game.gameField = CreateGamePage(+colsValue, +rowsValue);
       console.log("game field", game.gameField);
       
@@ -107,7 +94,7 @@ io.sockets.on("connection", (socket) => {
           PlayerSymbol: string
           
         ) => {
-     
+          
           if (game.gameField[+cordCell_1][+cordCell_2] === "null") {
             game.gameField[+cordCell_1][+cordCell_2] = GameSymbol;
             game.step = game.step === '0' ? 'X' : '0'
@@ -116,7 +103,8 @@ io.sockets.on("connection", (socket) => {
             const cordCell = `${cordCell_1}.${cordCell_2}`;
 
             socket.to(roomId).emit("cordCell", { cordCell, GameSymbol, step:  game.step });
-             socket.to(roomId).emit("stepPlayer",{step:game.step})
+            socket.emit("cordCell", { cordCell, GameSymbol, step:  game.step });
+            socket.to(roomId).emit("stepPlayer",{step:game.step})
 
             console.log(game.gameField);
 
@@ -150,7 +138,8 @@ io.sockets.on("connection", (socket) => {
                 GameSymbol,
                 WinHorizontal,
                 colsValue,
-                rowsValue
+                rowsValue,
+                roomId,
               )
             );
 
@@ -181,7 +170,8 @@ io.sockets.on("connection", (socket) => {
         GameSymbol: string,
         WinHorizontal: number,
         colsValue: number,
-        rowsValue: number
+        rowsValue: number,
+        roomId: string,
       ) {
         for (let col = 0; col < colsValue; col++) {
           for (let row = 0; row < rowsValue; row++) {
@@ -195,7 +185,7 @@ io.sockets.on("connection", (socket) => {
                 let NextCell_j: number = 0;
                 NextCell_i = +i_1;
                 NextCell_j = +j_1+i;
-                console.log(` ${NextCell_j}>${rowsValue}`)
+              
                 if (NextCell_j >= rowsValue) {
                   console.log("error massiv range");
                   WinHorizontal=0
@@ -203,13 +193,14 @@ io.sockets.on("connection", (socket) => {
                 } else {
                   if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
                     WinHorizontal++
-                    console.log("winVertical доп", WinHorizontal);
+                    
                     if (WinHorizontal === 3) {
                       WinHorizontal++;
-                      let message = `WIN ${GameSymbol}`;
-                      socket.emit("EndGame", message);
+                       let message = `WIN ${GameSymbol}`;
+                      socket.to(roomId).emit("EndGame", message);
+                      socket.emit("EndGame", message);  
                       socket.disconnect(true);
-                      return true;
+                      return WinHorizontal;
                     }
                   } else {
                     WinHorizontal=0;
@@ -234,7 +225,6 @@ io.sockets.on("connection", (socket) => {
         for (let row = 0; row < colsValue; row++) {
           for (let col = 0; col < rowsValue; col++) {
             if (gameField[col][row] === GameSymbol) {
-              console.log(`символ обнаружил'${col},${row}`);
               WinVertical++;
 
               for (let i = 1; i < 3; i++) {
@@ -245,7 +235,6 @@ io.sockets.on("connection", (socket) => {
                 NextCell_i = +i_1 + i;
                 NextCell_j = +j_1;
                 console.log("winVertical", WinVertical);
-                console.log(`vertical ${NextCell_i}>${colsValue}`)
                 if (NextCell_i >= colsValue) {
                   console.log("error massiv range");
                   WinVertical=0
@@ -253,7 +242,6 @@ io.sockets.on("connection", (socket) => {
                 } else {
                   if (gameField[NextCell_i][NextCell_j] === GameSymbol) {
                     WinVertical++;
-                    console.log("winVertical доп", WinVertical);
                     if (WinVertical === 3) {
                       WinVertical = 0;
                       let message = `WIN ${GameSymbol}`;
@@ -400,7 +388,6 @@ io.sockets.on("connection", (socket) => {
 
             if(gameField[col][row]==='null'){
               k++
-             console.log('k!!!!!!!!!!!!!!!!',k)
             }
             else{
             continue
@@ -408,7 +395,6 @@ io.sockets.on("connection", (socket) => {
            
           }
         }
-        console.log('k после цикла ',k)
         if(k===0){
           let message = `Ничья`;
           socket.emit("EndGame", message);
