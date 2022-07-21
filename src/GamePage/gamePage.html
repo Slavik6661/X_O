@@ -175,12 +175,12 @@
         let GameSymbol = ''
 
 
-        socket.on('EndGame', (message) => {
+     /*    socket.on('EndGame', (message) => {
             alert(message)
-            if (true) {
+            /* if (true) {
                 location.reload();
-            }
-        })
+            } 
+        }) */
 
         socket.on('cordCell', ({ cordCell, GameSymbol, step }) => {
             playerStep = step;
@@ -189,11 +189,7 @@
             X.classList.add('active')
             user.value = innerHTML = step
             console.log('cordCell', { GameSymbol, step })
-
-
             document.getElementById("game-field").style.pointerEvents = PlayersSymbol === step ? "auto" : "none"
-
-
         })
 
 
@@ -226,10 +222,18 @@
 
 
             }
-
+        
 
         })
-
+       
+        socket.on('EndGame', (message) => {
+        
+            alert(message)
+            /*   if (true) {
+                location.reload();
+            } */  
+        })
+        
     })
 
 </script>
