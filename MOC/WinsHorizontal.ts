@@ -5,7 +5,6 @@
         WinHorizontal: number,
         colsValue: number,
         rowsValue: number,
-        message:string,
       ) {
         for (let col = 0; col < colsValue; col++) {
           for (let row = 0; row < rowsValue; row++) {

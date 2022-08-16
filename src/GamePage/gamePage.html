@@ -73,13 +73,9 @@
 
     #NavigationGames {
        
-        position: absolute;
-        height: 200px;
-        left: 1000px; 
-        width: 300px;
-        margin-left: 0px;
+        width: 240px;
         font-size: 20px;
-        margin-top: 30px;
+        margin: 30px auto;
 
     }
     #NavigationGames button {
@@ -90,8 +86,8 @@
     }
 
     #content {
-        margin-left: 40%;
-        margin-top: 5%;
+        margin: 5% auto;
+        width: fit-content;
     }
     #StartGame {
         width: 235px;
@@ -133,7 +129,7 @@
     let rows = document.getElementById("rows")
     let user = document.getElementById("user")
 
-    let PlayersSymbol;
+    let playersSymbol;
     let playerStep = 'X'
     let amountPlayers
     let element = document.querySelector("#cell")
@@ -154,24 +150,23 @@
             let rowsValue = rows.value
             CreateGamePage(element, +colsValue, +rowsValue)
 
-            socket.on('start', ({ roomId, symbol, step }) => {
+            socket.on('start', ({ id, symbol, step }) => {
 
-                PlayersSymbol = symbol;
-                console.log('START', { roomId, symbol, step })
-                socket.emit('StartGame', roomId, +colsValue, +rowsValue)
+                playersSymbol = symbol;
+                console.log('START', { id, symbol, step })
+                socket.emit('StartGame', id, +colsValue, +rowsValue)
 
                 playerStep = step;
                 user.value = innerHTML = step
 
-                socket.on('PlayersReady', ({ Gameslobby }) => {
-                    amountPlayers = Gameslobby.length
+                socket.on('PlayersReady', ({ gamesLobby }) => {
+                    amountPlayers = gamesLobby.length
                     console.log('gamelobby', amountPlayers)
-                    document.getElementById("game-field").style.pointerEvents = (PlayersSymbol === step) && (amountPlayers > 1) ? "auto" : "none"
+                    
+                    document.getElementById("game-field").style.pointerEvents = (playersSymbol === step) && (amountPlayers > 1) ? "auto" : "none"
                 })
             })
         }
-
-        //})
 
         function CreateGamePage(parent, cols, rows) {
 
@@ -197,26 +192,15 @@
             }
             parent.appendChild(table)
         }
-
-
-        let GameSymbol = ''
-
-
-     /*    socket.on('EndGame', (message) => {
-            alert(message)
-            /* if (true) {
-                location.reload();
-            } 
-        }) */
-
-        socket.on('cordCell', ({ cordCell, GameSymbol, step }) => {
+        
+        socket.on('drawingCharacterFromTheEnemy', ({ cordCell, gameSymbol, step }) => {
             playerStep = step;
             let X = document.getElementById(cordCell)
-            X.innerHTML = GameSymbol
+            X.innerHTML = gameSymbol
             X.classList.add('active')
             user.value = innerHTML = step
-            console.log('cordCell', { GameSymbol, step })
-            document.getElementById("game-field").style.pointerEvents = PlayersSymbol === step ? "auto" : "none"
+            console.log('drawingCharacterFromTheEnemy', { gameSymbol, step })
+            document.getElementById("game-field").style.pointerEvents = playersSymbol === step ? "auto" : "none"
         })
 
 
@@ -226,24 +210,24 @@
 
                 if (playerStep === 'X') {
 
-                    GameSymbol = e.target.innerHTML = PlayersSymbol
+                    gameSymbol = e.target.innerHTML = playersSymbol
                     e.target.classList.add('active')
                     let CordCell = e.target.id.split('.')
                     let cell_1 = CordCell[0]// horison
                     let cell_2 = CordCell[1]// vertical
-                    console.log(GameSymbol + '-' + cell_1 + '-' + cell_2)
+                    console.log(gameSymbol + '-' + cell_1 + '-' + cell_2)
 
-                    socket.emit('click_cell', cell_1, cell_2, GameSymbol, PlayersSymbol)
+                    socket.emit('click_cell', cell_1, cell_2, gameSymbol, playersSymbol)
 
                 } else {
 
-                    GameSymbol = e.target.innerHTML = PlayersSymbol
+                    gameSymbol = e.target.innerHTML = playersSymbol
                     e.target.classList.add('active')
                     let CordCell = e.target.id.split('.')
                     let cell_1 = CordCell[0]// horison
                     let cell_2 = CordCell[1]// vertical
-                    console.log(GameSymbol + '-' + cell_1 + '-' + cell_2)
-                    socket.emit('click_cell', cell_1, cell_2, GameSymbol, PlayersSymbol)
+                    console.log(gameSymbol + '-' + cell_1 + '-' + cell_2)
+                    socket.emit('click_cell', cell_1, cell_2, gameSymbol, playersSymbol)
                 }
 
 
@@ -256,9 +240,10 @@
         socket.on('EndGame', (message) => {
         
             alert(message)
-            /*   if (true) {
+            socket.disconnect(true)
+                 if (true) {
                 location.reload();
-            } */  
+            }   
         })
         
     })
