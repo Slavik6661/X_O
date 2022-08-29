@@ -72,6 +72,7 @@ function checkWins({
     oneCoordinateToTheDiagonaleFromTheLeftToRight,
     oneCoordinateToTheDiagonaleFromTheRightToLeft,
   ];
+  let diagonalIsFilled: boolean = false;
   let diagonalFillingCounter = 1;
   for (
     let function_ = 0;
@@ -87,6 +88,7 @@ function checkWins({
         i,
         fromCoordinate
       ).currentJ;
+
       const isOutsideOfGameField =
         currentI >= colsValue || currentJ >= rowsValue;
 
@@ -101,14 +103,19 @@ function checkWins({
       if (currentSignIsEqualToGameSymbol) {
         diagonalFillingCounter++;
         console.log(diagonalFillingCounter);
+      } else {
+        diagonalFillingCounter = 1;
+        break;
       }
+      diagonalIsFilled =
+        diagonalFillingCounter === AMOUNT_OF_SIGNS_TO_FILL_DIAGONAL;
     }
   }
-
-  const diagonalIsFilled =
-    diagonalFillingCounter === AMOUNT_OF_SIGNS_TO_FILL_DIAGONAL;
-
   return diagonalIsFilled;
+  /*  const diagonalIsFilled =
+    diagonalFillingCounter === AMOUNT_OF_SIGNS_TO_FILL_DIAGONAL; */
+
+  // return diagonalIsFilled;
 }
 
 function oneCoordinateToTheRightOfTheCurrentHorizontally(
